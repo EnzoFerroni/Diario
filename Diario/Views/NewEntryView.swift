@@ -1,177 +1,152 @@
-//
-//  NewEntryView.swift
-//  Diario
-//
-//  Created by Enzo Ferroni on 05/12/25.
-//
-
 import SwiftUI
 
-// MARK: - NewEntryView
-
-/// View for creating a new diary entry with mood selection and subtle animations
 struct NewEntryView: View {
-    
-    // MARK: - Environment & State
-    
-    @Environment(\.dismiss) private var dismiss
-    
-    @State private var title: String = ""
-    @State private var content: String = ""
-    @State private var selectedMood: Mood = .neutral
-    @State private var isAnimating = false
-    
-    // MARK: - Properties
+    @Environment(\.dismiss) var dismiss
+    @State private var title = ""
+    @State private var content = ""
+    @State private var mood: Mood = .neutral
+    @State private var animate = false
+    @State private var saved = false
+    @State private var shake = false
     
     var viewModel: DiaryViewModel
     
-    // MARK: - Computed Properties
-    
-    private var canSave: Bool {
-        !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    }
-    
-    // MARK: - Body
+    var canSave: Bool { !title.isEmpty && !content.isEmpty }
     
     var body: some View {
         NavigationStack {
             Form {
-                titleSection
-                moodSection
-                contentSection
+                Section("Título") {
+                    TextField("Título", text: $title)
+                        .modifier(ShakeEffect(shakes: shake ? 2 : 0))
+                }
+                .opacity(animate ? 1 : 0)
+                .offset(y: animate ? 0 : 15)
+                
+                Section("Como você está?") {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 12) {
+                            ForEach(Mood.allCases) { m in
+                                MoodButton(mood: m, selected: mood == m) {
+                                    withAnimation(.bouncy) { mood = m }
+                                }
+                            }
+                        }
+                        .padding(.vertical, 8)
+                    }
+                }
+                .opacity(animate ? 1 : 0)
+                .offset(y: animate ? 0 : 15)
+                .animation(.smooth.delay(0.1), value: animate)
+                
+                Section("Conteúdo") {
+                    TextEditor(text: $content)
+                        .frame(minHeight: 120)
+                }
+                .opacity(animate ? 1 : 0)
+                .offset(y: animate ? 0 : 15)
+                .animation(.smooth.delay(0.2), value: animate)
             }
-            .navigationTitle("New Entry")
+            .navigationTitle("Nova Entrada")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
+                    Button("Cancelar") { dismiss() }
                 }
-                
                 ToolbarItem(placement: .confirmationAction) {
-                    saveButton
-                }
-            }
-            .onAppear {
-                withAnimation(.easeOut(duration: 0.3)) {
-                    isAnimating = true
-                }
-            }
-        }
-    }
-    
-    // MARK: - Subviews
-    
-    /// Title input section
-    private var titleSection: some View {
-        Section {
-            TextField("Entry title", text: $title)
-                .font(.headline)
-        } header: {
-            Text("Title")
-        }
-        .opacity(isAnimating ? 1 : 0)
-        .offset(y: isAnimating ? 0 : 10)
-    }
-    
-    /// Mood selection section with animated picker
-    private var moodSection: some View {
-        Section {
-            HStack(spacing: 16) {
-                ForEach(Mood.allCases) { mood in
-                    MoodButton(
-                        mood: mood,
-                        isSelected: selectedMood == mood
-                    ) {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                            selectedMood = mood
+                    Button("Salvar") {
+                        if canSave {
+                            viewModel.addEntry(title: title, content: content, mood: mood)
+                            withAnimation(.bouncy) { saved = true }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { dismiss() }
+                        } else {
+                            withAnimation(.default) { shake = true }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { shake = false }
                         }
                     }
+                    .fontWeight(.semibold)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .center)
-            .padding(.vertical, 8)
-        } header: {
-            Text("How are you feeling?")
+            .onAppear { withAnimation(.smooth) { animate = true } }
+            .overlay {
+                if saved { SuccessOverlay() }
+            }
         }
-        .opacity(isAnimating ? 1 : 0)
-        .offset(y: isAnimating ? 0 : 10)
-        .animation(.easeOut(duration: 0.3).delay(0.1), value: isAnimating)
-    }
-    
-    /// Content input section
-    private var contentSection: some View {
-        Section {
-            TextEditor(text: $content)
-                .frame(minHeight: 150)
-        } header: {
-            Text("What's on your mind?")
-        }
-        .opacity(isAnimating ? 1 : 0)
-        .offset(y: isAnimating ? 0 : 10)
-        .animation(.easeOut(duration: 0.3).delay(0.2), value: isAnimating)
-    }
-    
-    /// Save button with validation
-    private var saveButton: some View {
-        Button("Save") {
-            saveEntry()
-        }
-        .fontWeight(.semibold)
-        .disabled(!canSave)
-    }
-    
-    // MARK: - Private Methods
-    
-    /// Saves the new entry and dismisses the view
-    private func saveEntry() {
-        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
-        let trimmedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        viewModel.addEntry(
-            title: trimmedTitle,
-            content: trimmedContent,
-            mood: selectedMood
-        )
-        
-        dismiss()
     }
 }
 
-// MARK: - MoodButton
-
-/// A button representing a mood option with selection animation
 struct MoodButton: View {
     let mood: Mood
-    let isSelected: Bool
+    let selected: Bool
     let action: () -> Void
     
     var body: some View {
         Button(action: action) {
             VStack(spacing: 4) {
                 Text(mood.rawValue)
-                    .font(.largeTitle)
-                    .scaleEffect(isSelected ? 1.2 : 1.0)
-                
+                    .font(.system(size: 32))
+                    .scaleEffect(selected ? 1.2 : 1)
+                    .rotationEffect(.degrees(selected ? 8 : 0))
                 Text(mood.description)
                     .font(.caption2)
-                    .foregroundStyle(isSelected ? .primary : .secondary)
+                    .foregroundStyle(selected ? .primary : .secondary)
             }
-            .padding(8)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? Color.accentColor.opacity(0.2) : Color.clear)
-            )
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+            .background(selected ? Color.accentColor.opacity(0.15) : .clear, in: RoundedRectangle(cornerRadius: 12))
+            .animation(.bouncy, value: selected)
         }
         .buttonStyle(.plain)
-        .sensoryFeedback(.selection, trigger: isSelected)
+        .sensoryFeedback(.selection, trigger: selected)
     }
 }
 
-// MARK: - Preview
-
-#Preview {
-    NewEntryView(viewModel: DiaryViewModel())
+struct SuccessOverlay: View {
+    @State private var scale = 0.5
+    @State private var checkScale = 0.0
+    
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.2).ignoresSafeArea()
+            
+            VStack(spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(.green.gradient)
+                        .frame(width: 70, height: 70)
+                        .scaleEffect(scale)
+                    
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 30, weight: .bold))
+                        .foregroundStyle(.white)
+                        .scaleEffect(checkScale)
+                }
+                
+                Text("Salvo!")
+                    .font(.headline)
+                    .opacity(checkScale)
+            }
+            .padding(30)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 20))
+            .scaleEffect(scale)
+        }
+        .onAppear {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) { scale = 1 }
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.5).delay(0.15)) { checkScale = 1 }
+        }
+    }
 }
+
+struct ShakeEffect: GeometryEffect {
+    var shakes: CGFloat
+    var animatableData: CGFloat {
+        get { shakes }
+        set { shakes = newValue }
+    }
+    
+    func effectValue(size: CGSize) -> ProjectionTransform {
+        ProjectionTransform(CGAffineTransform(translationX: sin(shakes * .pi * 2) * 5, y: 0))
+    }
+}
+
+#Preview { NewEntryView(viewModel: DiaryViewModel()) }

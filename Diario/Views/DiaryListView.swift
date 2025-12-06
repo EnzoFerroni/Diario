@@ -1,206 +1,129 @@
-//
-//  DiaryListView.swift
-//  Diario
-//
-//  Created by Enzo Ferroni on 05/12/25.
-//
-
 import SwiftUI
+import ConfettiSwiftUI
 
-// MARK: - DiaryListView
-
-/// Main view displaying the list of diary entries with subtle animations
 struct DiaryListView: View {
-    
-    // MARK: - Environment & State
-    
-    @State private var viewModel: DiaryViewModel
-    @State private var aiService: AIService
-    @State private var showingNewEntry = false
-    @State private var selectedEntry: DiaryEntry?
-    @State private var showingSummary = false
-    @State private var summaryText: String = ""
-    
-    // MARK: - Initialization
+    @State var viewModel: DiaryViewModel
+    @State var aiService: AIService
+    @State private var showNew = false
+    @State private var selected: DiaryEntry?
+    @State private var showSummary = false
+    @State private var summary = ""
+    @State private var confettiCounter = 0
+    @State private var showToast = false
     
     init(viewModel: DiaryViewModel = DiaryViewModel(), aiService: AIService = AIService()) {
         _viewModel = State(initialValue: viewModel)
         _aiService = State(initialValue: aiService)
     }
     
-    // MARK: - Body
-    
     var body: some View {
         NavigationStack {
-            Group {
+            ZStack {
                 if viewModel.entries.isEmpty {
-                    emptyStateView
-                }
-                else {
-                    entriesListView
-                }
-            }
-            .navigationTitle("My Diary")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    addButton
+                    ContentUnavailableView("Sem Entradas", systemImage: "book.closed", description: Text("Toque no + para começar"))
+                        .transition(.opacity)
+                } else {
+                    List {
+                        ForEach(viewModel.sortedEntries) { entry in
+                            EntryRow(entry: entry)
+                                .onTapGesture { selected = entry }
+                        }
+                        .onDelete(perform: viewModel.deleteEntries)
+                    }
+                    .animation(.smooth, value: viewModel.entries.count)
                 }
                 
-                ToolbarItem(placement: .topBarLeading) {
-                    summaryButton
+                if showToast {
+                    ToastView(message: "Entrada salva! 🎉")
+                        .transition(.move(edge: .top).combined(with: .opacity))
                 }
             }
-            .sheet(isPresented: $showingNewEntry) {
+            .confettiCannon(trigger: $confettiCounter, num: 50, colors: [.purple, .pink, .blue, .yellow, .green], confettiSize: 12, rainHeight: 600, radius: 400)
+            .navigationTitle("Meu Diário")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { showNew = true } label: {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title2)
+                            .symbolEffect(.bounce, value: showNew)
+                    }
+                }
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        Task {
+                            summary = await aiService.generateSummary(for: viewModel.weeklyEntries)
+                            showSummary = true
+                        }
+                    } label: {
+                        if aiService.isProcessing { ProgressView() }
+                        else { Image(systemName: "sparkles") }
+                    }
+                    .disabled(viewModel.entries.isEmpty)
+                }
+            }
+            .sheet(isPresented: $showNew, onDismiss: {
+                confettiCounter += 1
+                withAnimation(.snappy) { showToast = true }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                    withAnimation { showToast = false }
+                }
+            }) {
                 NewEntryView(viewModel: viewModel)
             }
-            .sheet(item: $selectedEntry) { entry in
+            .sheet(item: $selected) { entry in
                 DiaryEntryView(entry: entry, viewModel: viewModel)
             }
-            .alert("Weekly Summary", isPresented: $showingSummary) {
-                Button("OK", role: .cancel) { }
+            .alert("Resumo da Semana ✨", isPresented: $showSummary) {
+                Button("Legal!") {}
             } message: {
-                Text(summaryText)
+                Text(summary)
             }
-        }
-    }
-    
-    // MARK: - Subviews
-    
-    /// Empty state view when no entries exist
-    private var emptyStateView: some View {
-        ContentUnavailableView {
-            Label("No Entries", systemImage: "book.closed")
-        } description: {
-            Text("Start writing your thoughts by tapping the + button.")
-        } actions: {
-            Button("Add Entry") {
-                showingNewEntry = true
-            }
-            .buttonStyle(.borderedProminent)
-        }
-        .transition(.opacity.combined(with: .scale))
-    }
-    
-    /// List view displaying all diary entries
-    private var entriesListView: some View {
-        List {
-            ForEach(viewModel.sortedEntries) { entry in
-                DiaryEntryRow(entry: entry)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            selectedEntry = entry
-                        }
-                    }
-                    .transition(.asymmetric(
-                        insertion: .scale.combined(with: .opacity),
-                        removal: .slide.combined(with: .opacity)
-                    ))
-            }
-            .onDelete(perform: viewModel.deleteEntries)
-        }
-        .listStyle(.insetGrouped)
-        .animation(.easeInOut(duration: 0.3), value: viewModel.entries)
-    }
-    
-    /// Button to add new entry
-    private var addButton: some View {
-        Button {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                showingNewEntry = true
-            }
-        } label: {
-            Image(systemName: "plus.circle.fill")
-                .font(.title2)
-                .symbolEffect(.bounce, value: showingNewEntry)
-        }
-    }
-    
-    /// Button to generate AI summary
-    private var summaryButton: some View {
-        Button {
-            Task {
-                await generateSummary()
-            }
-        } label: {
-            if aiService.isProcessing {
-                ProgressView()
-                    .scaleEffect(0.8)
-            }
-            else {
-                Image(systemName: "sparkles")
-                    .symbolEffect(.pulse, isActive: aiService.isProcessing)
-            }
-        }
-        .disabled(viewModel.entries.isEmpty || aiService.isProcessing)
-    }
-    
-    // MARK: - Private Methods
-    
-    /// Generates an AI summary of weekly entries
-    private func generateSummary() async {
-        let weeklyEntries = viewModel.weeklyEntries
-        
-        guard !weeklyEntries.isEmpty else {
-            summaryText = "No entries this week to summarize."
-            showingSummary = true
-            return
-        }
-        
-        if let summary = await aiService.generateSummary(for: weeklyEntries) {
-            summaryText = summary
-        }
-        else {
-            summaryText = "Could not generate summary."
-        }
-        
-        withAnimation(.easeInOut(duration: 0.2)) {
-            showingSummary = true
         }
     }
 }
 
-// MARK: - DiaryEntryRow
+struct ToastView: View {
+    let message: String
+    
+    var body: some View {
+        VStack {
+            Text(message)
+                .font(.subheadline.weight(.medium))
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .background(.ultraThinMaterial, in: Capsule())
+                .shadow(color: .black.opacity(0.1), radius: 10, y: 5)
+            Spacer()
+        }
+        .padding(.top, 8)
+    }
+}
 
-/// A single row displaying a diary entry preview
-struct DiaryEntryRow: View {
+struct EntryRow: View {
     let entry: DiaryEntry
+    @State private var show = false
     
     var body: some View {
         HStack(spacing: 12) {
-            // Mood indicator
             Text(entry.mood.rawValue)
                 .font(.title)
+                .scaleEffect(show ? 1 : 0.3)
+                .rotationEffect(.degrees(show ? 0 : -30))
             
-            VStack(alignment: .leading, spacing: 4) {
-                Text(entry.title)
-                    .font(.headline)
-                    .lineLimit(1)
-                
-                Text(entry.content)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
-                
-                Text(entry.date.formatted(date: .abbreviated, time: .shortened))
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
+            VStack(alignment: .leading) {
+                Text(entry.title).font(.headline)
+                Text(entry.content).font(.subheadline).foregroundStyle(.secondary).lineLimit(2)
+                Text(entry.date.formatted(date: .abbreviated, time: .shortened)).font(.caption).foregroundStyle(.tertiary)
             }
+            .opacity(show ? 1 : 0)
+            .offset(x: show ? 0 : 15)
             
             Spacer()
         }
-        .padding(.vertical, 4)
+        .onAppear {
+            withAnimation(.bouncy(duration: 0.5)) { show = true }
+        }
     }
 }
 
-// MARK: - Preview
-
-#Preview {
-    DiaryListView(
-        viewModel: {
-            let vm = DiaryViewModel()
-            vm.entries = DiaryEntry.sampleEntries
-            return vm
-        }()
-    )
-}
+#Preview { DiaryListView() }

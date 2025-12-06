@@ -1,273 +1,148 @@
-//
-//  DiaryEntryView.swift
-//  Diario
-//
-//  Created by Enzo Ferroni on 05/12/25.
-//
-
 import SwiftUI
 
-// MARK: - DiaryEntryView
-
-/// View for displaying and editing an existing diary entry
 struct DiaryEntryView: View {
-    
-    // MARK: - Environment & State
-    
-    @Environment(\.dismiss) private var dismiss
-    
+    @Environment(\.dismiss) var dismiss
     @State private var title: String
     @State private var content: String
-    @State private var selectedMood: Mood
-    @State private var isEditing = false
-    @State private var showDeleteConfirmation = false
-    @State private var contentOpacity: Double = 0
-    
-    // MARK: - Properties
+    @State private var mood: Mood
+    @State private var editing = false
+    @State private var showDelete = false
+    @State private var show = false
     
     let entry: DiaryEntry
     var viewModel: DiaryViewModel
-    
-    // MARK: - Computed Properties
-    
-    private var hasChanges: Bool {
-        title != entry.title ||
-        content != entry.content ||
-        selectedMood != entry.mood
-    }
-    
-    private var canSave: Bool {
-        !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    }
-    
-    // MARK: - Initialization
     
     init(entry: DiaryEntry, viewModel: DiaryViewModel) {
         self.entry = entry
         self.viewModel = viewModel
         _title = State(initialValue: entry.title)
         _content = State(initialValue: entry.content)
-        _selectedMood = State(initialValue: entry.mood)
+        _mood = State(initialValue: entry.mood)
     }
-    
-    // MARK: - Body
     
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    headerView
-                    moodView
-                    contentView
+                VStack(alignment: .leading, spacing: 16) {
+                    headerSection
+                    moodSection
+                    contentSection
                 }
                 .padding()
+                .opacity(show ? 1 : 0)
+                .offset(y: show ? 0 : 20)
             }
-            .navigationTitle(isEditing ? "Edit Entry" : "Entry Details")
+            .navigationTitle(editing ? "Editar" : "Detalhes")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(isEditing ? "Cancel" : "Close") {
-                        handleCancel()
+                    Button(editing ? "Cancelar" : "Fechar") {
+                        if editing {
+                            withAnimation(.snappy) {
+                                title = entry.title
+                                content = entry.content
+                                mood = entry.mood
+                                editing = false
+                            }
+                        } else { dismiss() }
                     }
                 }
-                
                 ToolbarItem(placement: .primaryAction) {
-                    if isEditing {
-                        Button("Save") {
-                            saveChanges()
+                    if editing {
+                        Button("Salvar") {
+                            var e = entry
+                            e.title = title
+                            e.content = content
+                            e.mood = mood
+                            viewModel.updateEntry(e)
+                            withAnimation(.snappy) { editing = false }
                         }
-                        .fontWeight(.semibold)
-                        .disabled(!canSave || !hasChanges)
-                    }
-                    else {
-                        editButton
+                    } else {
+                        Button("Editar") {
+                            withAnimation(.snappy) { editing = true }
+                        }
                     }
                 }
-                
                 ToolbarItem(placement: .bottomBar) {
-                    if !isEditing {
-                        deleteButton
+                    if !editing {
+                        Button(role: .destructive) { showDelete = true } label: {
+                            Label("Excluir", systemImage: "trash")
+                        }
                     }
                 }
             }
-            .confirmationDialog(
-                "Delete Entry",
-                isPresented: $showDeleteConfirmation,
-                titleVisibility: .visible
-            ) {
-                Button("Delete", role: .destructive) {
-                    deleteEntry()
+            .alert("Excluir?", isPresented: $showDelete) {
+                Button("Excluir", role: .destructive) {
+                    viewModel.deleteEntry(entry)
+                    dismiss()
                 }
-                Button("Cancel", role: .cancel) { }
-            } message: {
-                Text("Are you sure you want to delete this entry? This cannot be undone.")
+                Button("Cancelar", role: .cancel) {}
             }
             .onAppear {
-                withAnimation(.easeOut(duration: 0.4)) {
-                    contentOpacity = 1
-                }
+                withAnimation(.smooth(duration: 0.4)) { show = true }
             }
         }
     }
     
-    // MARK: - Subviews
-    
-    /// Header with title and date
-    private var headerView: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if isEditing {
-                TextField("Title", text: $title)
+    var headerSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            if editing {
+                TextField("Título", text: $title)
                     .font(.title2.bold())
                     .textFieldStyle(.roundedBorder)
+                    .transition(.scale)
+            } else {
+                Text(title).font(.title2.bold())
             }
-            else {
-                Text(title)
-                    .font(.title2.bold())
-            }
-            
             Text(entry.date.formatted(date: .complete, time: .shortened))
-                .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
-        .opacity(contentOpacity)
     }
     
-    /// Mood display or selector
-    private var moodView: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Mood")
-                .font(.headline)
-                .foregroundStyle(.secondary)
-            
-            if isEditing {
-                HStack(spacing: 12) {
-                    ForEach(Mood.allCases) { mood in
-                        MoodButton(
-                            mood: mood,
-                            isSelected: selectedMood == mood
-                        ) {
-                            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                                selectedMood = mood
-                            }
+    var moodSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Humor").font(.headline).foregroundStyle(.secondary)
+            if editing {
+                HStack(spacing: 8) {
+                    ForEach(Mood.allCases) { m in
+                        Button {
+                            withAnimation(.bouncy) { mood = m }
+                        } label: {
+                            Text(m.rawValue)
+                                .font(.title)
+                                .scaleEffect(mood == m ? 1.2 : 1)
+                                .rotationEffect(.degrees(mood == m ? 10 : 0))
                         }
+                        .buttonStyle(.plain)
                     }
                 }
-            }
-            else {
-                HStack(spacing: 8) {
-                    Text(selectedMood.rawValue)
-                        .font(.largeTitle)
-                    
-                    Text(selectedMood.description)
-                        .font(.body)
-                        .foregroundStyle(.secondary)
+            } else {
+                HStack(spacing: 6) {
+                    Text(mood.rawValue).font(.largeTitle)
+                    Text(mood.description)
                 }
             }
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.secondarySystemBackground))
-        )
-        .opacity(contentOpacity)
-        .animation(.easeOut(duration: 0.3).delay(0.1), value: contentOpacity)
+        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 14))
     }
     
-    /// Content display or editor
-    private var contentView: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Content")
-                .font(.headline)
-                .foregroundStyle(.secondary)
-            
-            if isEditing {
+    var contentSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Conteúdo").font(.headline).foregroundStyle(.secondary)
+            if editing {
                 TextEditor(text: $content)
-                    .frame(minHeight: 200)
-                    .padding(8)
-                    .background(Color(.tertiarySystemBackground))
-                    .cornerRadius(12)
-            }
-            else {
-                Text(content)
-                    .font(.body)
-                    .lineSpacing(6)
+                    .frame(minHeight: 150)
+                    .scrollContentBackground(.hidden)
+            } else {
+                Text(content).lineSpacing(5)
             }
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.secondarySystemBackground))
-        )
-        .opacity(contentOpacity)
-        .animation(.easeOut(duration: 0.3).delay(0.2), value: contentOpacity)
-    }
-    
-    /// Edit button
-    private var editButton: some View {
-        Button {
-            withAnimation(.easeInOut(duration: 0.2)) {
-                isEditing = true
-            }
-        } label: {
-            Text("Edit")
-        }
-    }
-    
-    /// Delete button
-    private var deleteButton: some View {
-        Button(role: .destructive) {
-            showDeleteConfirmation = true
-        } label: {
-            Label("Delete Entry", systemImage: "trash")
-        }
-    }
-    
-    // MARK: - Private Methods
-    
-    /// Handles cancel action
-    private func handleCancel() {
-        if isEditing {
-            withAnimation(.easeInOut(duration: 0.2)) {
-                title = entry.title
-                content = entry.content
-                selectedMood = entry.mood
-                isEditing = false
-            }
-        }
-        else {
-            dismiss()
-        }
-    }
-    
-    /// Saves changes to the entry
-    private func saveChanges() {
-        var updatedEntry = entry
-        updatedEntry.title = title.trimmingCharacters(in: .whitespacesAndNewlines)
-        updatedEntry.content = content.trimmingCharacters(in: .whitespacesAndNewlines)
-        updatedEntry.mood = selectedMood
-        
-        viewModel.updateEntry(updatedEntry)
-        
-        withAnimation(.easeInOut(duration: 0.2)) {
-            isEditing = false
-        }
-    }
-    
-    /// Deletes the entry
-    private func deleteEntry() {
-        viewModel.deleteEntry(entry)
-        dismiss()
+        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 14))
     }
 }
 
-// MARK: - Preview
-
-#Preview {
-    DiaryEntryView(
-        entry: DiaryEntry.sampleEntries[0],
-        viewModel: DiaryViewModel()
-    )
-}
+#Preview { DiaryEntryView(entry: DiaryEntry.samples[0], viewModel: DiaryViewModel()) }

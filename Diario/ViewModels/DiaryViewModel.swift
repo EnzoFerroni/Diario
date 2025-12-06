@@ -1,127 +1,50 @@
-//
-//  DiaryViewModel.swift
-//  Diario
-//
-//  Created by Enzo Ferroni on 05/12/25.
-//
-
-import Foundation
 import SwiftUI
 
-// MARK: - DiaryViewModel
-
-/// Main ViewModel that manages diary entries with persistence
-/// Uses @Observable for automatic SwiftUI updates (iOS 17+)
 @Observable
-final class DiaryViewModel {
-    
-    // MARK: - Published Properties
-    
+class DiaryViewModel {
     var entries: [DiaryEntry] = []
-    var isLoading: Bool = false
-    var errorMessage: String?
-    
-    // MARK: - Private Properties
-    
-    private let storageKey = "diary_entries"
-    
-    // MARK: - Initialization
     
     init() {
-        loadEntries()
+        if let data = UserDefaults.standard.data(forKey: "entries") {
+            entries = (try? JSONDecoder().decode([DiaryEntry].self, from: data)) ?? []
+        }
     }
     
-    // MARK: - Public Methods
-    
-    /// Adds a new entry to the diary
-    /// - Parameters:
-    ///   - title: The entry title
-    ///   - content: The entry content
-    ///   - mood: The mood associated with the entry
     func addEntry(title: String, content: String, mood: Mood) {
-        let newEntry = DiaryEntry(
-            title: title,
-            content: content,
-            mood: mood
-        )
-        
-        withAnimation(.easeInOut(duration: 0.3)) {
-            entries.insert(newEntry, at: 0)
-        }
-        
-        saveEntries()
+        let entry = DiaryEntry(title: title, content: content, mood: mood)
+        withAnimation { entries.insert(entry, at: 0) }
+        save()
     }
     
-    /// Updates an existing entry
-    /// - Parameter entry: The updated entry
     func updateEntry(_ entry: DiaryEntry) {
-        guard let index = entries.firstIndex(where: { $0.id == entry.id }) else {
-            return
+        if let i = entries.firstIndex(where: { $0.id == entry.id }) {
+            entries[i] = entry
+            save()
         }
-        
-        withAnimation(.easeInOut(duration: 0.2)) {
-            entries[index] = entry
-        }
-        
-        saveEntries()
     }
     
-    /// Deletes entries at specified offsets
-    /// - Parameter offsets: IndexSet of entries to delete
     func deleteEntries(at offsets: IndexSet) {
-        withAnimation(.easeInOut(duration: 0.25)) {
-            entries.remove(atOffsets: offsets)
-        }
-        
-        saveEntries()
+        withAnimation { entries.remove(atOffsets: offsets) }
+        save()
     }
     
-    /// Deletes a specific entry
-    /// - Parameter entry: The entry to delete
     func deleteEntry(_ entry: DiaryEntry) {
-        withAnimation(.easeInOut(duration: 0.25)) {
-            entries.removeAll { $0.id == entry.id }
-        }
-        
-        saveEntries()
+        withAnimation { entries.removeAll { $0.id == entry.id } }
+        save()
     }
     
-    /// Returns entries sorted by date (newest first)
     var sortedEntries: [DiaryEntry] {
         entries.sorted { $0.date > $1.date }
     }
     
-    /// Returns entries for the current week
     var weeklyEntries: [DiaryEntry] {
-        let calendar = Calendar.current
-        let weekAgo = calendar.date(byAdding: .day, value: -7, to: Date()) ?? Date()
-        return entries.filter { $0.date >= weekAgo }
+        let week = Calendar.current.date(byAdding: .day, value: -7, to: Date())!
+        return entries.filter { $0.date >= week }
     }
     
-    // MARK: - Private Methods
-    
-    /// Loads entries from UserDefaults
-    private func loadEntries() {
-        guard let data = UserDefaults.standard.data(forKey: storageKey) else {
-            return
-        }
-        
-        do {
-            entries = try JSONDecoder().decode([DiaryEntry].self, from: data)
-        }
-        catch {
-            errorMessage = "Failed to load entries: \(error.localizedDescription)"
-        }
-    }
-    
-    /// Saves entries to UserDefaults
-    private func saveEntries() {
-        do {
-            let data = try JSONEncoder().encode(entries)
-            UserDefaults.standard.set(data, forKey: storageKey)
-        }
-        catch {
-            errorMessage = "Failed to save entries: \(error.localizedDescription)"
+    private func save() {
+        if let data = try? JSONEncoder().encode(entries) {
+            UserDefaults.standard.set(data, forKey: "entries")
         }
     }
 }

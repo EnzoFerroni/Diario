@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		C6D806E82EE3BB18002F910D /* ConfettiSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = C6D806E72EE3BB18002F910D /* ConfettiSwiftUI */; };
+		C6D806EB2EE3BB34002F910D /* PopupView in Frameworks */ = {isa = PBXBuildFile; productRef = C6D806EA2EE3BB34002F910D /* PopupView */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		C6D806C32EE3AABC002F910D /* Diario.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Diario.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -23,6 +28,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C6D806EB2EE3BB34002F910D /* PopupView in Frameworks */,
+				C6D806E82EE3BB18002F910D /* ConfettiSwiftUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +72,8 @@
 			);
 			name = Diario;
 			packageProductDependencies = (
+				C6D806E72EE3BB18002F910D /* ConfettiSwiftUI */,
+				C6D806EA2EE3BB34002F910D /* PopupView */,
 			);
 			productName = Diario;
 			productReference = C6D806C32EE3AABC002F910D /* Diario.app */;
@@ -94,6 +103,10 @@
 			);
 			mainGroup = C6D806BA2EE3AABC002F910D;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				C6D806E62EE3BB18002F910D /* XCRemoteSwiftPackageReference "ConfettiSwiftUI" */,
+				C6D806E92EE3BB34002F910D /* XCRemoteSwiftPackageReference "PopupView" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C6D806C42EE3AABC002F910D /* Products */;
 			projectDirPath = "";
@@ -332,6 +345,38 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		C6D806E62EE3BB18002F910D /* XCRemoteSwiftPackageReference "ConfettiSwiftUI" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/simibac/ConfettiSwiftUI";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.3;
+			};
+		};
+		C6D806E92EE3BB34002F910D /* XCRemoteSwiftPackageReference "PopupView" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/exyte/PopupView";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.1.17;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		C6D806E72EE3BB18002F910D /* ConfettiSwiftUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C6D806E62EE3BB18002F910D /* XCRemoteSwiftPackageReference "ConfettiSwiftUI" */;
+			productName = ConfettiSwiftUI;
+		};
+		C6D806EA2EE3BB34002F910D /* PopupView */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C6D806E92EE3BB34002F910D /* XCRemoteSwiftPackageReference "PopupView" */;
+			productName = PopupView;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = C6D806BB2EE3AABC002F910D /* Project object */;
 }
