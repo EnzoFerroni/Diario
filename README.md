@@ -13,19 +13,19 @@
 
 ---
 
-## ✨ Funcionalidades
+## Funcionalidades
 
-- 📝 **Criar entradas** com título, conteúdo e humor
-- 😊 **Seleção de humor** com emojis animados
-- 📖 **Visualizar e editar** entradas existentes
-- 🗑️ **Excluir entradas** com swipe
-- 🎉 **Animações de confetti** ao salvar
-- 🤖 **Resumo semanal** gerado por inteligência artificial
-- 🔗 **App Intents** para integração com o app Atalhos
+- **Criar entradas** com título, conteúdo e humor
+- **Seleção de humor** com emojis animados
+- **Visualizar e editar** entradas existentes
+- **Excluir entradas** com swipe
+- **Animações de confetti** ao salvar
+- **Resumo semanal** gerado por inteligência artificial
+- **App Intents** para integração com o app Atalhos
 
 ---
 
-## 🛠 Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 ### FoundationModels (Apple Intelligence)
 
@@ -130,7 +130,7 @@ struct DiaryListView: View {
 
 ---
 
-## 📦 Dependências
+## Dependências
 
 | Pacote | Versão | Uso |
 |--------|--------|-----|
