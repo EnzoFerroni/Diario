@@ -1,7 +1,7 @@
 # Diário
 
 <p align="center">
-  <img src="https://img.shields.io/badge/iOS-17.0+-blue.svg" alt="iOS 17.0+">
+  <img src="https://img.shields.io/badge/iOS-18.0+-blue.svg" alt="iOS 18.0+">
   <img src="https://img.shields.io/badge/Swift-5.9-orange.svg" alt="Swift 5.9">
   <img src="https://img.shields.io/badge/Xcode-16.0+-purple.svg" alt="Xcode 16.0+">
   <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License">
@@ -13,19 +13,34 @@
 
 ---
 
-## Funcionalidades
+## 📱 Preview
 
-- **Criar entradas** com título, conteúdo e humor
-- **Seleção de humor** com emojis animados
-- **Visualizar e editar** entradas existentes
-- **Excluir entradas** com swipe
-- **Animações de confetti** ao salvar
-- **Resumo semanal** gerado por inteligência artificial
-- **App Intents** para integração com o app Atalhos
+<p align="center">
+  <img src="_Screenshots/demo.gif" width="250" alt="Demo do App">
+</p>
+
+<p align="center">
+  <img src="_Screenshots/empty.png" width="180" alt="Tela Vazia">
+  <img src="_Screenshots/new_entry.png" width="180" alt="Nova Entrada">
+  <img src="_Screenshots/home.png" width="180" alt="Lista de Entradas">
+  <img src="_Screenshots/summary.png" width="180" alt="Resumo IA">
+</p>
 
 ---
 
-## Tecnologias Utilizadas
+## ✨ Funcionalidades
+
+- 📝 **Criar entradas** com título, conteúdo e humor
+- 😊 **Seleção de humor** com emojis animados
+- 📖 **Visualizar e editar** entradas existentes
+- 🗑️ **Excluir entradas** com swipe
+- 🎉 **Animações de confetti** ao salvar
+- 🤖 **Resumo semanal** gerado por inteligência artificial
+- 🔗 **App Intents** para integração com o app Atalhos
+
+---
+
+## 🛠 Tecnologias Utilizadas
 
 ### FoundationModels (Apple Intelligence)
 
@@ -65,7 +80,6 @@ import AppIntents
 
 struct CreateDiaryEntryIntent: AppIntent {
     static var title: LocalizedStringResource = "Criar Entrada no Diário"
-    static var description = IntentDescription("Cria uma nova entrada no diário")
     
     @Parameter(title: "Título") var title: String
     @Parameter(title: "Conteúdo") var content: String
@@ -90,50 +104,104 @@ struct CreateDiaryEntryIntent: AppIntent {
 
 ### Animações
 
-O app utiliza animações sutis para melhorar a experiência do usuário sem distrair.
+O app utiliza animações sutis para melhorar a experiência do usuário.
 
 #### ConfettiSwiftUI
 Biblioteca externa para animação de confetti quando uma entrada é salva.
 
 ```swift
-import ConfettiSwiftUI
-
-struct DiaryListView: View {
-    @State private var confettiCounter = 0
-    
-    var body: some View {
-        NavigationStack {
-            // ...
-        }
-        .confettiCannon(
-            trigger: $confettiCounter,
-            num: 50,
-            colors: [.purple, .pink, .blue, .yellow, .green],
-            confettiSize: 12,
-            rainHeight: 600,
-            radius: 400
-        )
-    }
-}
+.confettiCannon(
+    trigger: $confettiCounter,
+    num: 50,
+    colors: [.purple, .pink, .blue, .yellow, .green]
+)
 ```
 
-#### Animações Nativas do SwiftUI
+#### Animações Nativas
 
 | Animação | Uso | Código |
 |----------|-----|--------|
-| `.bouncy` | Seleção de humor, aparição de itens | `withAnimation(.bouncy)` |
+| `.bouncy` | Seleção de humor | `withAnimation(.bouncy)` |
 | `.smooth` | Transições de lista | `.animation(.smooth, value:)` |
 | `.snappy` | Toast de feedback | `withAnimation(.snappy)` |
 | `symbolEffect` | Botão de adicionar | `.symbolEffect(.bounce)` |
 
-**Onde está implementado:** `Views/DiaryListView.swift`, `Views/NewEntryView.swift`
+---
+
+## 📁 Arquitetura
+
+O projeto segue a arquitetura **MVVM** (Model-View-ViewModel):
+
+```
+Diario/
+├── Models/
+│   └── DiaryEntry.swift          # Modelo de dados e enum Mood
+├── ViewModels/
+│   └── DiaryViewModel.swift      # Lógica de negócio e persistência
+├── Views/
+│   ├── DiaryListView.swift       # Lista principal de entradas
+│   ├── NewEntryView.swift        # Criação de nova entrada
+│   └── DiaryEntryView.swift      # Visualização/edição de entrada
+├── Services/
+│   └── AIService.swift           # Integração com FoundationModels
+├── Intents/
+│   └── DiaryAppIntents.swift     # App Intents para Atalhos
+├── ContentView.swift             # View raiz
+└── DiarioApp.swift               # Entry point do app
+```
 
 ---
 
-## Dependências
+## 📦 Dependências
 
-| Pacote | Versão | Uso |
-|--------|--------|-----|
-| [ConfettiSwiftUI](https://github.com/simibac/ConfettiSwiftUI) | 1.1.0+ | Animação de confetti |
+| Pacote | Uso |
+|--------|-----|
+| [ConfettiSwiftUI](https://github.com/simibac/ConfettiSwiftUI) | Animação de confetti |
 
 ---
+
+## 🚀 Como Executar
+
+1. Clone o repositório:
+```bash
+git clone https://github.com/EnzoFerroni/Diario.git
+```
+
+2. Abra o projeto:
+```bash
+cd Diario && open Diario.xcodeproj
+```
+
+3. Aguarde o Xcode baixar as dependências
+
+4. Pressione `Cmd + R` para executar
+
+---
+
+## 📋 Requisitos
+
+| Componente | Versão |
+|------------|--------|
+| iOS | 18.0+ |
+| Xcode | 16.0+ |
+| Swift | 5.9+ |
+
+> **Nota:** O resumo com IA requer Apple Intelligence. Em dispositivos não compatíveis, um resumo local é gerado.
+
+---
+
+## 🎓 Contexto
+
+Projeto desenvolvido na **Apple Developer Academy | Mackenzie**.
+
+---
+
+## 📄 Licença
+
+MIT License - veja [LICENSE](LICENSE)
+
+---
+
+<p align="center">
+  Desenvolvido com 💜 na Apple Developer Academy | Mackenzie
+</p>
