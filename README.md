@@ -1,33 +1,30 @@
-# 📔 Diario
+# Diario
 
-App de diário pessoal feito em SwiftUI para a Apple Developer Academy | Mackenzie.
+App de diário pessoal feito em SwiftUI.
 
 ## Funcionalidades
 
-- ✏️ Criar, editar e excluir entradas
-- 😊 Selecionar humor (feliz, triste, animado, ansioso, neutro)
-- ✨ Resumo semanal com inteligência artificial
-- 🎉 Animações e feedback visual
+- Criar, editar e excluir entradas
+- Selecionar humor (feliz, triste, animado, ansioso, neutro)
+- Resumo semanal com inteligência artificial
+- Animações e feedback visual
 
 ## Tecnologias Utilizadas
 
-### 📱 AppIntents
-`Intents/DiaryAppIntents.swift`
+### AppIntents
 
-Permite usar o app através do app **Atalhos** do iOS:
+Permite usar o app através do app **Atalhos** :
 - `CreateDiaryEntryIntent` → Cria nova entrada
 - `GetLastEntryIntent` → Mostra última entrada
 
-### 🤖 FoundationModels
-`Services/AIService.swift`
+### FoundationModels
 
-Usa a **Apple Intelligence** (iOS 26+) para gerar resumos:
+Usa a **Apple Intelligence** para gerar resumos:
 - `@Generable` com `WeeklySummary` para respostas estruturadas
 - Verifica se IA está disponível no dispositivo
 - Fallback local quando IA não está disponível
 
-### 🎨 Animações
-`Views/`
+### Animações
 
 | Animação | Onde | Descrição |
 |----------|------|-----------|
@@ -39,24 +36,6 @@ Usa a **Apple Intelligence** (iOS 26+) para gerar resumos:
 
 Animações nativas: `.bouncy`, `.smooth`, `.snappy`, `symbolEffect(.bounce)`
 
-### 📦 Pacotes SPM
+### Pacotes SPM
 
 - [ConfettiSwiftUI](https://github.com/simibac/ConfettiSwiftUI) - Efeito de confetti
-
-## Arquitetura MVVM
-
-```
-Diario/
-├── Models/
-│   └── DiaryEntry.swift      # Modelo de entrada e enum Mood
-├── ViewModels/
-│   └── DiaryViewModel.swift  # Lógica e persistência (UserDefaults)
-├── Views/
-│   ├── DiaryListView.swift   # Tela principal com lista
-│   ├── NewEntryView.swift    # Criar nova entrada
-│   └── DiaryEntryView.swift  # Ver/editar entrada
-├── Services/
-│   └── AIService.swift       # Integração com FoundationModels
-└── Intents/
-    └── DiaryAppIntents.swift # AppIntents para Atalhos
-```
