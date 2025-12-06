@@ -13,7 +13,7 @@
 
 ---
 
-## 📱 Preview
+## Preview
 
 <p align="center">
   <img src="_Screenshots/demo.gif" width="250" alt="Demo do App">
@@ -28,19 +28,19 @@
 
 ---
 
-## ✨ Funcionalidades
+## Funcionalidades
 
-- 📝 **Criar entradas** com título, conteúdo e humor
-- 😊 **Seleção de humor** com emojis animados
-- 📖 **Visualizar e editar** entradas existentes
-- 🗑️ **Excluir entradas** com swipe
-- 🎉 **Animações de confetti** ao salvar
-- 🤖 **Resumo semanal** gerado por inteligência artificial
-- 🔗 **App Intents** para integração com o app Atalhos
+- **Criar entradas** com título, conteúdo e humor
+- **Seleção de humor** com emojis animados
+- **Visualizar e editar** entradas existentes
+- **Excluir entradas** com swipe
+- **Animações de confetti** ao salvar
+- **Resumo semanal** gerado por inteligência artificial
+- **App Intents** para integração com o app Atalhos
 
 ---
 
-## 🛠 Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 ### FoundationModels (Apple Intelligence)
 
@@ -128,80 +128,10 @@ Biblioteca externa para animação de confetti quando uma entrada é salva.
 
 ---
 
-## 📁 Arquitetura
-
-O projeto segue a arquitetura **MVVM** (Model-View-ViewModel):
-
-```
-Diario/
-├── Models/
-│   └── DiaryEntry.swift          # Modelo de dados e enum Mood
-├── ViewModels/
-│   └── DiaryViewModel.swift      # Lógica de negócio e persistência
-├── Views/
-│   ├── DiaryListView.swift       # Lista principal de entradas
-│   ├── NewEntryView.swift        # Criação de nova entrada
-│   └── DiaryEntryView.swift      # Visualização/edição de entrada
-├── Services/
-│   └── AIService.swift           # Integração com FoundationModels
-├── Intents/
-│   └── DiaryAppIntents.swift     # App Intents para Atalhos
-├── ContentView.swift             # View raiz
-└── DiarioApp.swift               # Entry point do app
-```
-
----
-
-## 📦 Dependências
+## Dependências
 
 | Pacote | Uso |
 |--------|-----|
 | [ConfettiSwiftUI](https://github.com/simibac/ConfettiSwiftUI) | Animação de confetti |
 
 ---
-
-## 🚀 Como Executar
-
-1. Clone o repositório:
-```bash
-git clone https://github.com/EnzoFerroni/Diario.git
-```
-
-2. Abra o projeto:
-```bash
-cd Diario && open Diario.xcodeproj
-```
-
-3. Aguarde o Xcode baixar as dependências
-
-4. Pressione `Cmd + R` para executar
-
----
-
-## 📋 Requisitos
-
-| Componente | Versão |
-|------------|--------|
-| iOS | 18.0+ |
-| Xcode | 16.0+ |
-| Swift | 5.9+ |
-
-> **Nota:** O resumo com IA requer Apple Intelligence. Em dispositivos não compatíveis, um resumo local é gerado.
-
----
-
-## 🎓 Contexto
-
-Projeto desenvolvido na **Apple Developer Academy | Mackenzie**.
-
----
-
-## 📄 Licença
-
-MIT License - veja [LICENSE](LICENSE)
-
----
-
-<p align="center">
-  Desenvolvido com 💜 na Apple Developer Academy | Mackenzie
-</p>
