@@ -19,6 +19,7 @@ A personal journal for iOS with an on-device AI weekly summary, Shortcuts suppor
 - [Built With](#built-with)
 - [Getting Started](#getting-started)
 - [Project Structure](#project-structure)
+- [Author](#author)
 - [License](#license)
 
 ## About
@@ -73,6 +74,21 @@ Diario/
 ├── Services/      AIService (Foundation Models)
 └── Intents/       DiaryAppIntents (Shortcuts)
 ```
+
+## Author
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center" width="100%">
+        <a href="https://github.com/EnzoFerroni"><img src="https://github.com/EnzoFerroni.png" width="90" alt="Enzo Ferroni"/></a>
+        <br/><sub><b>Enzo Ferroni</b></sub><br/><br/>
+        <a href="https://github.com/EnzoFerroni"><img src="https://skillicons.dev/icons?i=github" alt="GitHub"/></a>
+        <a href="https://www.linkedin.com/in/enzoferroni/"><img src="https://skillicons.dev/icons?i=linkedin" alt="LinkedIn"/></a>
+      </td>
+    </tr>
+  </table>
+</div>
 
 ## License
 
