@@ -1,137 +1,79 @@
 # Diário
 
-<p align="center">
-  <img src="https://img.shields.io/badge/iOS-18.0+-blue.svg" alt="iOS 18.0+">
-  <img src="https://img.shields.io/badge/Swift-5.9-orange.svg" alt="Swift 5.9">
-  <img src="https://img.shields.io/badge/Xcode-16.0+-purple.svg" alt="Xcode 16.0+">
-  <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License">
-</p>
+[![iOS](https://img.shields.io/badge/iOS-26.1%2B-000000?logo=apple)](https://developer.apple.com/ios/)
+[![Swift](https://img.shields.io/badge/Swift-5.9-F05138?logo=swift&logoColor=white)](https://swift.org)
+[![Apple Intelligence](https://img.shields.io/badge/Foundation%20Models-on--device%20AI-8E44AD)](https://developer.apple.com/documentation/foundationmodels)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+
+A personal journal for iOS with an on-device AI weekly summary, Shortcuts support and playful animations.
 
 <p align="center">
-  Um aplicativo de diário pessoal simples e intuitivo, desenvolvido em SwiftUI com foco em experiência do usuário através de animações suaves e integração com inteligência artificial.
+  <img src="_Screenshots/demo.gif" width="250" alt="Diário demo">
 </p>
 
----
+## Table of Contents
 
-## Preview
+- [About](#about)
+- [Features](#features)
+- [Screenshots](#screenshots)
+- [Built With](#built-with)
+- [Getting Started](#getting-started)
+- [Project Structure](#project-structure)
+- [License](#license)
 
-<p align="center">
-  <img src="_Screenshots/demo.gif" width="250" alt="Demo do App">
-</p>
+## About
 
-<p align="center">
-  <img src="_Screenshots/empty.png" width="180" alt="Tela Vazia">
-  <img src="_Screenshots/new_entry.png" width="180" alt="Nova Entrada">
-  <img src="_Screenshots/home.png" width="180" alt="Lista de Entradas">
-  <img src="_Screenshots/summary.png" width="180" alt="Resumo IA">
-</p>
+Diário is a small SwiftUI journal built to explore three recent Apple frameworks in
+one app: **Foundation Models** for on-device text generation, **App Intents** for
+Shortcuts and Siri, and SwiftUI's newer animation APIs. The UI is in Portuguese.
 
----
+## Features
 
-## Funcionalidades
+- Create, edit and delete entries with a title, text and mood
+- Animated mood picker
+- Weekly summary generated on device with Apple Intelligence
+- Shortcuts actions to create an entry and read the latest one
+- Confetti and toast feedback when an entry is saved
 
-- **Criar entradas** com título, conteúdo e humor
-- **Seleção de humor** com emojis animados
-- **Visualizar e editar** entradas existentes
-- **Excluir entradas** com swipe
-- **Animações de confetti** ao salvar
-- **Resumo semanal** gerado por inteligência artificial
-- **App Intents** para integração com o app Atalhos
+## Screenshots
 
----
+| Empty state | New entry | Entries | AI summary |
+| :---: | :---: | :---: | :---: |
+| <img src="_Screenshots/empty.png" width="180"> | <img src="_Screenshots/new_entry.png" width="180"> | <img src="_Screenshots/home.png" width="180"> | <img src="_Screenshots/summary.png" width="180"> |
 
-## Tecnologias Utilizadas
+## Built With
 
-### FoundationModels (Apple Intelligence)
+- SwiftUI with MVVM
+- [Foundation Models](https://developer.apple.com/documentation/foundationmodels): `LanguageModelSession` with a `@Generable` `WeeklySummary` type for structured output
+- [App Intents](https://developer.apple.com/documentation/appintents): `CreateDiaryEntryIntent` and `GetLastEntryIntent`
+- Native animations: `.bouncy`, `.smooth`, `.snappy` and `symbolEffect`
+- [ConfettiSwiftUI](https://github.com/simibac/ConfettiSwiftUI) (Swift Package)
 
-O app utiliza o framework `FoundationModels` para gerar resumos semanais das entradas do diário usando inteligência artificial on-device.
+## Getting Started
 
-```swift
-import FoundationModels
+Requirements: Xcode 26 or later. The AI summary needs a device or simulator with
+Apple Intelligence enabled; the rest of the app works without it.
 
-@Generable
-struct WeeklySummary {
-    var resumo: String
-    var humorPrincipal: String
-    var totalEntradas: Int
-}
-
-class AIService {
-    private let session = LanguageModelSession()
-    
-    func generateSummary(for entries: [DiaryEntry]) async -> String {
-        let prompt = "Gere um resumo das entradas: \(entries.map { $0.content })"
-        let response = try? await session.respond(to: prompt, generating: WeeklySummary.self)
-        return response?.content.resumo ?? "Resumo não disponível"
-    }
-}
+```bash
+git clone https://github.com/EnzoFerroni/Diario.git
+cd Diario
+open Diario.xcodeproj
 ```
 
-**Onde está implementado:** `Services/AIService.swift`
+Xcode resolves the ConfettiSwiftUI package on first build.
 
----
+## Project Structure
 
-### AppIntents
-
-Integração com o app Atalhos da Apple, permitindo criar entradas e consultar o diário através de automações.
-
-```swift
-import AppIntents
-
-struct CreateDiaryEntryIntent: AppIntent {
-    static var title: LocalizedStringResource = "Criar Entrada no Diário"
-    
-    @Parameter(title: "Título") var title: String
-    @Parameter(title: "Conteúdo") var content: String
-    
-    func perform() async throws -> some IntentResult {
-        let entry = DiaryEntry(title: title, content: content, mood: .feliz)
-        DiaryViewModel().addEntry(entry)
-        return .result()
-    }
-}
+```
+Diario/
+├── DiarioApp.swift
+├── Models/        DiaryEntry, Mood
+├── ViewModels/    DiaryViewModel
+├── Views/         DiaryListView, DiaryEntryView, NewEntryView
+├── Services/      AIService (Foundation Models)
+└── Intents/       DiaryAppIntents (Shortcuts)
 ```
 
-**Onde está implementado:** `Intents/DiaryAppIntents.swift`
+## License
 
-**Intents disponíveis:**
-| Intent | Descrição |
-|--------|-----------|
-| `CreateDiaryEntryIntent` | Cria uma nova entrada no diário |
-| `GetLastEntryIntent` | Retorna a última entrada registrada |
-
----
-
-### Animações
-
-O app utiliza animações sutis para melhorar a experiência do usuário.
-
-#### ConfettiSwiftUI
-Biblioteca externa para animação de confetti quando uma entrada é salva.
-
-```swift
-.confettiCannon(
-    trigger: $confettiCounter,
-    num: 50,
-    colors: [.purple, .pink, .blue, .yellow, .green]
-)
-```
-
-#### Animações Nativas
-
-| Animação | Uso | Código |
-|----------|-----|--------|
-| `.bouncy` | Seleção de humor | `withAnimation(.bouncy)` |
-| `.smooth` | Transições de lista | `.animation(.smooth, value:)` |
-| `.snappy` | Toast de feedback | `withAnimation(.snappy)` |
-| `symbolEffect` | Botão de adicionar | `.symbolEffect(.bounce)` |
-
----
-
-## Dependências
-
-| Pacote | Uso |
-|--------|-----|
-| [ConfettiSwiftUI](https://github.com/simibac/ConfettiSwiftUI) | Animação de confetti |
-
----
+Released under the [MIT License](LICENSE). Copyright (c) 2025 Enzo Ferroni.
